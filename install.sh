@@ -124,6 +124,10 @@ init_cluster_variables() {
 
     # fix permissions on fuel client
     chmod o+r /etc/fuel/client/config.yaml
+
+    message "Tuning cluster"
+    keystone tenant-create --name demo
+    keystone user-create --tenant demo --name demo --pass demo
 }
 
 install_puppet_tempest() {
@@ -168,9 +172,9 @@ node default {
     image_name           => "TestVM",
     image_name_alt       => "TestVM",
 
-    username             => "admin",
-    password             => "admin",
-    tenant_name          => "admin",
+    username             => "demo",
+    password             => "demo",
+    tenant_name          => "demo",
 
     admin_username       => "admin",
     admin_password       => "admin",
