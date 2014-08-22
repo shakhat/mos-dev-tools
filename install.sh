@@ -239,6 +239,7 @@ export PS1='\[\033[01;33m\]\u@\h\[\033[01;0m\]:\[\033[01;34m\]\W\[\033[01;0m\]$ 
 fi
 cd ${DEST}
 . ${VIRTUALENV_DIR}/bin/activate
+. ${USER_HOME}/.rally/openrc
 EOF
     chown ${USER_NAME} ${USER_HOME}/.bashrc
 
