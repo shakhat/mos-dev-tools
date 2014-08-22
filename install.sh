@@ -193,6 +193,10 @@ node default {
 EOF
 
     puppet apply ${TEMPEST_SITE_PP}
+
+    mkdir -p /etc/tempest
+    mv ${TEMPEST_DIR}/etc/tempest.conf /etc/tempest/
+
     message "Tempest installed into ${TEMPEST_DIR}"
 }
 
@@ -297,6 +301,9 @@ EOF
     chown -R ${USER_NAME} ${USER_HOME}/.rally
 
     chown -R ${USER_NAME} ${DEST}
+
+    chown ${USER_NAME} /etc/rally/rally.conf
+    chown ${USER_NAME} /etc/tempest/tempest.conf
 }
 
 print_information() {
