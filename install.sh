@@ -14,11 +14,6 @@ message() {
     printf "\e[33m%s\e[0m\n" "${1}"
 }
 
-get_service_url() {
-    keystone catalog --service ${1} | grep publicURL | awk '{print $4}'
-}
-
-
 print_usage() {
     echo "Usage: ${0##*/} [-h]"
     echo "Options:"
@@ -54,7 +49,6 @@ init_variables() {
     DEST=${DEST:-/opt/stack}
     VIRTUALENV_DIR=${DEST}/.venv
 
-    GETPIPPY_FILE="/tmp/get-pip.py"
     PIP_SECURE_LOCATION="https://raw.github.com/pypa/pip/master/contrib/get-pip.py"
     TMP="`dirname \"$0\"`"
     TMP="`( cd \"${TMP}\" && pwd )`"
@@ -63,20 +57,24 @@ init_variables() {
 }
 
 install_system_requirements() {
+    message "Enable default CentOS repos"
+    yum -y reinstall centos-release  # enable default CentOS repos
+
     message "Installing system requirements"
-
-    if ! hash pip 2> /dev/null; then
-        wget -O ${GETPIPPY_FILE} ${PIP_SECURE_LOCATION}
-        python ${GETPIPPY_FILE}
-    fi
-
-    pip install -U tox
-    pip install -U virtualenv
+    yum -y install gcc
+    yum -y install zlib-devel
+    yum -y install sqlite-devel
+    yum -y install readline-devel
+    yum -y install bzip2-devel
+    yum -y install libgcrypt-devel
+    yum -y install openssl-devel
+    yum -y install libffi-devel
+    yum -y install libxml2-devel
+    yum -y install libxslt-devel
 }
 
 install_python_27() {
     message "Installing Python 2.7"
-
     TMP="`mktemp -d`"
     cd ${TMP}
     wget https://www.python.org/ftp/python/2.7.8/Python-2.7.8.tgz
@@ -84,6 +82,14 @@ install_python_27() {
     cd Python-2.7.8
     ./configure --prefix=/usr/local --enable-unicode=ucs4 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
     make altinstall
+
+    message "Installing pip and virtualenv for Python 2.7"
+    GETPIPPY_FILE="`mktemp`"
+    wget -O ${GETPIPPY_FILE} ${PIP_SECURE_LOCATION}
+    python2.7 ${GETPIPPY_FILE}
+
+    pip2.7 install -U tox
+    pip2.7 install -U virtualenv
 }
 
 setup_virtualenv() {
@@ -101,8 +107,20 @@ init_cluster_variables() {
     CONTROLLER_HOST="node-${CONTROLLER_HOST_ID}"
     message "Controller host: ${CONTROLLER_HOST}"
 
-    ENDPOINT=$(get_service_url compute | sed -En 's#^.*//(.*):.*$#\1#p')
-    message "Endpoint: ${ENDPOINT}"
+    export OS_AUTH_URL=http://${CONTROLLER_HOST}:5000/v2.0/
+    export OS_USERNAME=admin
+    export OS_PASSWORD=admin
+    export OS_TENANT_NAME=admin
+
+    ADMIN_URL="`keystone catalog --service identity | grep adminURL | awk '{print $4}'`"
+    MGMT_IP="`echo ${ADMIN_URL} | sed 's/[\/:]/ /g' | awk '{print $2}'`"
+    MGMT_CIDR="`echo ${MGMT_IP} | awk -F '.' '{print $1 "." $2 "." $3 ".0/24"}'`"
+
+    message "Keystone admin URL: ${ADMIN_URL}"
+    message "Calculated mgmt network CIDR: ${MGMT_CIDR}"
+
+    message "Adding route to mgmt network"
+    ip ro add ${MGMT_CIDR} dev eth0 || true
 
     # fix permissions on fuel client
     chmod o+r /etc/fuel/client/config.yaml
