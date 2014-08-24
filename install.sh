@@ -108,6 +108,7 @@ init_cluster_variables() {
     message "Controller host: ${CONTROLLER_HOST}"
 
     export OS_AUTH_URL=http://${CONTROLLER_HOST}:5000/v2.0/
+    export OS_AUTH_URL_v3=http://${CONTROLLER_HOST}:5000/v3.0/
     export OS_USERNAME=admin
     export OS_PASSWORD=admin
     export OS_TENANT_NAME=admin
@@ -155,6 +156,7 @@ install_tempest() {
     ${VIRTUALENV_DIR}/bin/python setup.py install
     mkdir -p /etc/tempest
     chmod -R o+r /etc/tempest
+    cp helpers/tempest.sh ${VIRTUALENV_DIR}/bin/
     message "Tempest installed into ${TEMPEST_DIR}"
 }
 
@@ -254,9 +256,14 @@ EOF
 User root
 EOF
 
-    # copy Rally's openrc
-    cp -r /root/.rally ${USER_HOME}
-    chown -R ${USER_NAME} ${USER_HOME}/.rally
+    # openrc
+    cat > ${USER_HOME}/openrc <<EOF
+export OS_TENANT_NAME=${OS_TENANT_NAME}
+export OS_USERNAME=${OS_USERNAME}
+export OS_PASSWORD=${OS_PASSWORD}
+export OS_AUTH_URL=${OS_AUTH_URL}
+export OS_AUTH_URL_V3=${OS_AUTH_URL_v3}
+EOF
 
     chown -R ${USER_NAME} ${DEST}
 }
