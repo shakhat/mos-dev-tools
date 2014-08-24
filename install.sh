@@ -130,19 +130,6 @@ init_cluster_variables() {
     keystone user-create --tenant demo --name demo --pass demo
 }
 
-install_puppet_tempest() {
-    message "Installing puppet module for Tempest"
-    TMP="`mktemp -d`"
-    cd ${TMP}
-    git clone https://github.com/shakhat/puppet-tempest.git
-    cd puppet-tempest
-    git checkout identity_uri_v3
-    cd ../
-    puppet module build puppet-tempest
-    TEMPEST_MODULE="`ls puppet-tempest/pkg/*gz`"
-    puppet module install --force ${TEMPEST_MODULE}
-}
-
 install_rally() {
     message "Installing Rally into ${DEST}"
     cd ${DEST}
@@ -154,49 +141,20 @@ install_rally() {
     ${VIRTUALENV_DIR}/bin/python setup.py install
     RALLY_CONFIGURATION_DIR="/etc/rally"
     RALLY_DATABASE_DIR="${VIRTUALENV_DIR}/database"
+    chmod -R o+r /etc/rally
     message "Rally installed into ${RALLY_DIR}"
 }
 
-install_and_preconfigure_tempest() {
-    message "Installing and configuring Tempest"
+install_tempest() {
+    message "Installing Tempest into ${DEST}"
+    cd ${DEST}
     TEMPEST_DIR="${DEST}/tempest"
-    TEMPEST_SITE_PP="`mktemp`"
-    cat > ${TEMPEST_SITE_PP} << EOF
-node default {
-  class { 'tempest':
-    setup_venv           => true,
-    tempest_clone_path   => "${TEMPEST_DIR}",
-
-    identity_uri         => "http://${CONTROLLER_HOST}:5000/v2.0",
-    identity_uri_v3      => "http://${CONTROLLER_HOST}:5000/v3.0/",
-    image_name           => "TestVM",
-    image_name_alt       => "TestVM",
-
-    username             => "demo",
-    password             => "demo",
-    tenant_name          => "demo",
-
-    admin_username       => "admin",
-    admin_password       => "admin",
-    admin_tenant_name    => "admin",
-    admin_role           => "admin",
-
-    # services
-    neutron_available    => true,
-    cinder_available     => false,
-    glance_available     => false,
-    nova_available       => false,
-
-    public_network_name  => "net04",
-  }
-}
-EOF
-
-    puppet apply ${TEMPEST_SITE_PP}
-
+    rm -rf ${TEMPEST_DIR}
+    git clone git://git.openstack.org/openstack/tempest.git
+    cd ${TEMPEST_DIR}
+    ${VIRTUALENV_DIR}/bin/python setup.py install
     mkdir -p /etc/tempest
-    mv ${TEMPEST_DIR}/etc/tempest.conf /etc/tempest/
-
+    chmod -R o+r /etc/tempest
     message "Tempest installed into ${TEMPEST_DIR}"
 }
 
@@ -301,9 +259,6 @@ EOF
     chown -R ${USER_NAME} ${USER_HOME}/.rally
 
     chown -R ${USER_NAME} ${DEST}
-
-    chown ${USER_NAME} /etc/rally/rally.conf
-    chown ${USER_NAME} /etc/tempest/tempest.conf
 }
 
 print_information() {
@@ -326,12 +281,11 @@ main() {
     setup_virtualenv
 
     init_cluster_variables
-    install_puppet_tempest
 
     install_rally
-    install_and_preconfigure_tempest
-    configure_rally
+    install_tempest
 
+    configure_rally
     configure_user
 
     print_information
