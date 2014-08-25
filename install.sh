@@ -5,14 +5,9 @@
 
 set -e
 
-error() {
-    printf "\e[31mError: %s\e[0m\n" "${*}" >&2
-    exit 1
-}
+TOP_DIR=$(cd $(dirname "$0") && pwd)
 
-message() {
-    printf "\e[33m%s\e[0m\n" "${1}"
-}
+source ${TOP_DIR}/helpers/functions.sh
 
 print_usage() {
     echo "Usage: ${0##*/} [-h]"
@@ -125,10 +120,6 @@ init_cluster_variables() {
 
     # fix permissions on fuel client
     chmod o+r /etc/fuel/client/config.yaml
-
-    message "Tuning cluster"
-    keystone tenant-create --name demo
-    keystone user-create --tenant demo --name demo --pass demo
 }
 
 install_rally() {
@@ -142,6 +133,7 @@ install_rally() {
     ${VIRTUALENV_DIR}/bin/python setup.py install
     RALLY_CONFIGURATION_DIR="/etc/rally"
     RALLY_DATABASE_DIR="${VIRTUALENV_DIR}/database"
+    mkdir -p /etc/rally
     chmod -R o+r /etc/rally
     message "Rally installed into ${RALLY_DIR}"
 }
@@ -156,8 +148,16 @@ install_tempest() {
     ${VIRTUALENV_DIR}/bin/python setup.py install
     mkdir -p /etc/tempest
     chmod -R o+r /etc/tempest
-    cp helpers/tempest.sh ${VIRTUALENV_DIR}/bin/
+    cp ${TOP_DIR}/helpers/tempest.sh ${VIRTUALENV_DIR}/bin/tempest
     message "Tempest installed into ${TEMPEST_DIR}"
+
+    message "Downloading necessary resources"
+    TEMPEST_FILES="${VIRTUALENV_DIR}/files"
+    mkdir ${TEMPEST_FILES}
+
+    CIRROS_VERSION=${CIRROS_VERSION:-"0.3.2"}
+    CIRROS_IMAGE_URL="http://download.cirros-cloud.net/${CIRROS_VERSION}/cirros-${CIRROS_VERSION}-x86_64-uec.tar.gz"
+    wget -O ${TEMPEST_FILES}/cirros-${CIRROS_VERSION}-x86_64-uec.tar.gz ${CIRROS_IMAGE_URL}
 }
 
 configure_rally() {
@@ -225,7 +225,7 @@ export PS1='\[\033[01;33m\]\u@\h\[\033[01;0m\]:\[\033[01;34m\]\W\[\033[01;0m\]$ 
 fi
 cd ${DEST}
 . ${VIRTUALENV_DIR}/bin/activate
-. ${USER_HOME}/.rally/openrc
+. ${USER_HOME}/openrc
 EOF
     chown ${USER_NAME} ${USER_HOME}/.bashrc
 
@@ -264,6 +264,10 @@ export OS_PASSWORD=${OS_PASSWORD}
 export OS_AUTH_URL=${OS_AUTH_URL}
 export OS_AUTH_URL_V3=${OS_AUTH_URL_v3}
 EOF
+
+    # copy Rally deployment openrc
+    cp -r /root/.rally ${USER_HOME}
+    chown -R ${USER_NAME} ${USER_HOME}/.rally
 
     chown -R ${USER_NAME} ${DEST}
 }
