@@ -149,6 +149,7 @@ install_tempest() {
     mkdir -p /etc/tempest
     chmod -R o+r /etc/tempest
     cp ${TOP_DIR}/helpers/tempest.sh ${VIRTUALENV_DIR}/bin/tempest
+    cp ${TOP_DIR}/helpers/sync.sh ${VIRTUALENV_DIR}/bin/sync
     cp ${TOP_DIR}/helpers/functions.sh ${VIRTUALENV_DIR}/bin/
     message "Tempest installed into ${TEMPEST_DIR}"
 
