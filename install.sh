@@ -18,7 +18,7 @@ print_usage() {
 check_root() {
     local user=$(/usr/bin/id -u)
     if [ ${user} -ne 0 ]; then
-        err "Only the superuser (uid 0) can use this script."
+        error "Only the superuser (uid 0) can use this script."
         exit 1
     fi
 }
@@ -31,7 +31,7 @@ parse_arguments() {
                 exit 0
                 ;;
             *)
-                err "An invalid option has been detected."
+                error "An invalid option has been detected."
                 print_usage
                 exit 1
         esac
@@ -149,6 +149,7 @@ install_tempest() {
     mkdir -p /etc/tempest
     chmod -R o+r /etc/tempest
     cp ${TOP_DIR}/helpers/tempest.sh ${VIRTUALENV_DIR}/bin/tempest
+    cp ${TOP_DIR}/helpers/functions.sh ${VIRTUALENV_DIR}/bin/
     message "Tempest installed into ${TEMPEST_DIR}"
 
     message "Downloading necessary resources"
@@ -158,6 +159,8 @@ install_tempest() {
     CIRROS_VERSION=${CIRROS_VERSION:-"0.3.2"}
     CIRROS_IMAGE_URL="http://download.cirros-cloud.net/${CIRROS_VERSION}/cirros-${CIRROS_VERSION}-x86_64-uec.tar.gz"
     wget -O ${TEMPEST_FILES}/cirros-${CIRROS_VERSION}-x86_64-uec.tar.gz ${CIRROS_IMAGE_URL}
+    cd ${TEMPEST_FILES}
+    tar xzf cirros-${CIRROS_VERSION}-x86_64-uec.tar.gz
 }
 
 configure_rally() {

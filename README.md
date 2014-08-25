@@ -12,6 +12,11 @@ Installation
 5. ./install.sh
 6. ./rejoin.sh
 
-Run Tests
----------
-1. tox
+Tools
+-----
+* tempest - runs Tempest tests, e.g. **"tempest -- tempest.network.test_ports"**
+* rally - runs Rally suite, e.g. **"rally/doc/samples/tasks/scenarios/neutron/create_and_list_networks.yaml"**
+
+Development
+-----------
+1. Run tests: tox

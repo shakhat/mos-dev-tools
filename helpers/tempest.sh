@@ -3,7 +3,7 @@
 TOP_DIR=$(cd $(dirname "$0") && pwd)
 DEST=${DEST:-/opt/stack}
 
-source ${TOP_DIR}/functions
+source ${TOP_DIR}/functions.sh
 
 print_usage() {
     echo "This script configures and runs Tempest"
@@ -15,30 +15,25 @@ print_usage() {
 }
 
 parse_arguments() {
-    if ! options=$(getopt -o hd -l help,debug,config -- "$@")
-    then
-        # parse error
-        print_usage
-        exit 1
-    fi
-
     LOGGING_DEBUG="false"
 
     while getopts ":hd" opt; do
         case ${opt} in
-            -h)
+            h)
                 print_usage
                 exit 0
                 ;;
-            -d)
+            d)
                 LOGGING_DEBUG="true"
                 ;;
+            *)
+                error "An invalid option has been detected."
+                print_usage
+                exit 1
         esac
     done
     shift $((OPTIND-1))
     [ "$1" = "--" ] && shift
-
-    echo "$@"
 }
 
 prepare() {
@@ -55,6 +50,9 @@ prepare() {
     TEMPEST_CONF="`mktemp`"
 
     cat > ${TEMPEST_CONF} << EOF
+[DEFAULT]
+debug = ${LOGGING_DEBUG}
+
 [service_available]
 neutron = true
 nova = true
@@ -101,7 +99,7 @@ run() {
 }
 
 main() {
-    parse_arguments
+    parse_arguments "$@"
     prepare
     run "$@"
     exit 0
