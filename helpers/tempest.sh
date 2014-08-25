@@ -79,6 +79,9 @@ image_ssh_user = cirros
 public_network_id = ${PUBLIC_NETWORK_ID}
 public_router_id = ${PUBLIC_ROUTER_ID}
 
+[network-feature-enabled]
+api_extensions = ext-gw-mode,security-group,l3_agent_scheduler,binding,quotas,dhcp_agent_scheduler,multi-provider,agent,external-net,router,metering,allowed-address-pairs,extra_dhcp_opt,extraroute
+
 [scenario]
 image_dir = ${DEST}/.venv/files
 qcow2_img_file = cirros-0.3.2-x86_64-blank.img
