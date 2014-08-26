@@ -15,7 +15,8 @@ print_usage() {
 }
 
 parse_arguments() {
-    LOGGING_DEBUG="false"
+    DEBUG="false"
+    SERIAL=0
 
     while getopts ":hd" opt; do
         case ${opt} in
@@ -24,7 +25,7 @@ parse_arguments() {
                 exit 0
                 ;;
             d)
-                LOGGING_DEBUG="true"
+                DEBUG="true"
                 ;;
             *)
                 error "An invalid option has been detected."
@@ -34,6 +35,7 @@ parse_arguments() {
     done
     shift $((OPTIND-1))
     [ "$1" = "--" ] && shift
+    TESTARGS="$@"
 }
 
 prepare() {
@@ -51,7 +53,8 @@ prepare() {
 
     cat > ${TEMPEST_CONF} << EOF
 [DEFAULT]
-debug = ${LOGGING_DEBUG}
+debug = ${DEBUG}
+lock_path = /tmp
 
 [service_available]
 neutron = true
@@ -90,14 +93,41 @@ EOF
     config_file=`readlink -f "${TEMPEST_CONF}"`
     export TEMPEST_CONFIG_DIR=`dirname "${TEMPEST_CONF}"`
     export TEMPEST_CONFIG=`basename "${TEMPEST_CONF}"`
+    message "Tempest configured:"
+    message "`cat ${TEMPEST_CONF}`"
+}
+
+function testr_init {
+    if [ ! -d .testrepository ]; then
+        testr init
+    fi
+}
+
+function run_tests {
+    testr_init
+    find . -type f -name "*.pyc" -delete
+    export OS_TEST_PATH=./tempest/test_discover
+
+    if [ "${DEBUG}" = "true" ]; then
+        if [ "${TESTARGS}" = "" ]; then
+            TESTARGS="discover ./tempest/test_discover"
+        fi
+        python -m testtools.run ${TESTARGS}
+        return $?
+    fi
+
+    if [ ${SERIAL} -eq 1 ]; then
+        testr run --subunit ${TESTARGS} | subunit-filter --fixup-expected-failures=/opt/stack/shouldfail --xfail | subunit-2to1 | tools/colorizer.py
+    else
+        testr run --parallel --subunit ${TESTARGS} | subunit-filter --fixup-expected-failures=/opt/stack/shouldfail --xfail | subunit-2to1 | tools/colorizer.py
+    fi
 }
 
 run() {
-    message "Running Tempest with the following config:"
-    message "`cat ${TEMPEST_CONF}`"
+    message "Running Tempest"
 
     cd /opt/stack/tempest/
-    ./run_tempest.sh -N "$@"
+    run_tests
     cd ${TOP_DIR}
 }
 

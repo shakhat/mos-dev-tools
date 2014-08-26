@@ -134,7 +134,7 @@ install_rally() {
     RALLY_CONFIGURATION_DIR="/etc/rally"
     RALLY_DATABASE_DIR="${VIRTUALENV_DIR}/database"
     mkdir -p /etc/rally
-    chmod -R o+r /etc/rally
+    chmod -R o+w /etc/rally
     message "Rally installed into ${RALLY_DIR}"
 }
 
@@ -147,10 +147,11 @@ install_tempest() {
     cd ${TEMPEST_DIR}
     ${VIRTUALENV_DIR}/bin/python setup.py install
     mkdir -p /etc/tempest
-    chmod -R o+r /etc/tempest
+    chmod -R o+w /etc/tempest
     cp ${TOP_DIR}/helpers/tempest.sh ${VIRTUALENV_DIR}/bin/tempest
     cp ${TOP_DIR}/helpers/sync.sh ${VIRTUALENV_DIR}/bin/sync
     cp ${TOP_DIR}/helpers/functions.sh ${VIRTUALENV_DIR}/bin/
+    cp ${TOP_DIR}/helpers/shouldfail ${DEST}/
     message "Tempest installed into ${TEMPEST_DIR}"
 
     message "Downloading necessary resources"
