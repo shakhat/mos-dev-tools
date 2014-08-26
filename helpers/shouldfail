@@ -1,2 +1,6 @@
+# The test creates router and then tries to schedule it to L3-agent. The test will not pass in MOS because:
+# 1) In MOS handle_internal_only_routers = false and l3_agentschedulers_db.get_l3_agent_candidates blocks such routers
+# 2) If router is created with gateway then it is scheduled automatically and test fails with RouterHostedByL3Agent error
 tempest.api.network.admin.test_l3_agent_scheduler.L3AgentSchedulerTestXML.test_add_list_remove_router_on_l3_agent[gate,smoke]
+# ditto
 tempest.api.network.admin.test_l3_agent_scheduler.L3AgentSchedulerTestJSON.test_add_list_remove_router_on_l3_agent[gate,smoke]

@@ -86,7 +86,10 @@ public_router_id = ${PUBLIC_ROUTER_ID}
 api_extensions = ext-gw-mode,security-group,l3_agent_scheduler,binding,quotas,dhcp_agent_scheduler,multi-provider,agent,external-net,router,metering,allowed-address-pairs,extra_dhcp_opt,extraroute
 
 [scenario]
-image_dir = ${DEST}/.venv/files
+img_dir = ${DEST}/.venv/files
+ami_img_file = cirros-0.3.2-x86_64-blank.img
+ari_img_file = cirros-0.3.2-x86_64-initrd
+aki_img_file = cirros-0.3.2-x86_64-vmlinuz
 qcow2_img_file = cirros-0.3.2-x86_64-blank.img
 EOF
 
@@ -94,7 +97,9 @@ EOF
     export TEMPEST_CONFIG_DIR=`dirname "${TEMPEST_CONF}"`
     export TEMPEST_CONFIG=`basename "${TEMPEST_CONF}"`
     message "Tempest configured:"
+    message "*******************"
     message "`cat ${TEMPEST_CONF}`"
+    message "*******************"
 }
 
 function testr_init {
@@ -117,9 +122,9 @@ function run_tests {
     fi
 
     if [ ${SERIAL} -eq 1 ]; then
-        testr run --subunit ${TESTARGS} | subunit-filter --fixup-expected-failures=/opt/stack/shouldfail --xfail | subunit-2to1 | tools/colorizer.py
+        testr run --subunit ${TESTARGS} | subunit-filter --fixup-expected-failures=/opt/stack/shouldfail --success --failure --error --xfail --passthrough | subunit-2to1 | tools/colorizer.py
     else
-        testr run --parallel --subunit ${TESTARGS} | subunit-filter --fixup-expected-failures=/opt/stack/shouldfail --xfail | subunit-2to1 | tools/colorizer.py
+        testr run --parallel --subunit ${TESTARGS} | subunit-filter --fixup-expected-failures=/opt/stack/shouldfail --success --failure --error --xfail --passthrough | subunit-2to1 | tools/colorizer.py
     fi
 }
 

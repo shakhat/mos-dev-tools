@@ -5,18 +5,18 @@ fuel-tools
 
 Installation
 ------------
-1. Login into Fuel master node
-2. yum install git
-3. git clone https://github.com/shakhat/fuel-tools.git
-4. cd fuel-tools
-5. ./install.sh
-6. ./rejoin.sh
+# Login into Fuel master node
+# yum install git
+# git clone https://github.com/shakhat/mos-dev-tools.git
+# cd fuel-tools
+# ./install.sh
+# ./rejoin.sh
 
 Tools
 -----
-* tempest - runs Tempest tests, e.g. **"tempest -- tempest.network.test_ports"**
-* rally - runs Rally suite, e.g. **"rally/doc/samples/tasks/scenarios/neutron/create_and_list_networks.yaml"**
+* **tempest** - runs Tempest tests, e.g. `tempest -- tempest.network.test_ports`
+* **rally** - runs Rally suite, e.g. `rally/doc/samples/tasks/scenarios/neutron/create_and_list_networks.yaml`
 
-Development
------------
-1. Run tests: tox
+Configs
+-------
+* **helpers/shouldfail** - list tests that due to architecture specific are expected to fail in MOS
