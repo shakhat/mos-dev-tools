@@ -1,16 +1,16 @@
-fuel-tools
-==========
+mos-dev-tools
+=============
 
-**Turn Fuel master into powerful devbox!**
+**Ultimate set of tools for MOS developers and testers**
 
 Installation
 ------------
-# Login into Fuel master node
-# yum install git
-# git clone https://github.com/shakhat/mos-dev-tools.git
-# cd fuel-tools
-# ./install.sh
-# ./rejoin.sh
+1. Login into Fuel master node
+1. `yum install git`
+1. `git clone https://github.com/shakhat/mos-dev-tools.git`
+1. `cd mos-dev-tools`
+1. `./install.sh`
+1. `./rejoin.sh`
 
 Tools
 -----
