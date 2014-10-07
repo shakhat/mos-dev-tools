@@ -178,8 +178,11 @@ configure_rally() {
     cat > ${RALLY_CLUSTER_FILE} << EOF
 {
     "type": "ExistingCloud",
-    "endpoint": {
-        "auth_url": "http://${CONTROLLER_HOST}:5000/v2.0/",
+    "auth_url": "http://${CONTROLLER_HOST}:5000/v2.0/",
+    "region_name": "RegionOne",
+    "endpoint_type": "public",
+    "admin_port": 35357,
+    "admin": {
         "username": "admin",
         "password": "admin",
         "tenant_name": "admin"
